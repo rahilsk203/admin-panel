@@ -29,8 +29,8 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 transition-transform duration-300 hover:-translate-y-1">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 dark:from-[#181a20] dark:via-[#23263a] dark:to-[#181a20] p-4">
+      <div className="w-full max-w-md bg-white/80 dark:bg-[#23263a]/90 rounded-2xl shadow-2xl p-8 transition-transform duration-300 hover:-translate-y-1 backdrop-blur-xl border border-blue-100 dark:border-gray-800">
           {/* Logo Section */}
         <div className="flex justify-center mb-6">
             {Logo ? (
@@ -40,15 +40,15 @@ export default function Login() {
               className="max-w-[150px] h-auto"
               />
             ) : (
-            <div className="text-3xl font-bold text-blue-700 tracking-wide text-center">
+            <div className="text-3xl font-bold text-blue-700 dark:text-blue-300 tracking-wide text-center">
                 Tech Clinic Admin
             </div>
           )}
         </div>
-        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">Admin Login</h2>
+        <h2 className="text-2xl font-semibold text-center text-gray-800 dark:text-gray-100 mb-6">Admin Login</h2>
         <form onSubmit={handleSubmit} autoComplete="off" className="space-y-5">
           <div>
-            <label className="block text-gray-700 font-medium mb-1" htmlFor="username">Username</label>
+            <label className="block text-gray-700 dark:text-gray-200 font-medium mb-1" htmlFor="username">Username</label>
             <input
               id="username"
               type="text"
@@ -56,12 +56,12 @@ export default function Login() {
               onChange={(e) => setUsername(e.target.value)}
               required
               autoFocus
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-[#23263a] dark:text-gray-100 transition"
               placeholder="Enter your username"
             />
           </div>
           <div>
-            <label className="block text-gray-700 font-medium mb-1" htmlFor="password">Password</label>
+            <label className="block text-gray-700 dark:text-gray-200 font-medium mb-1" htmlFor="password">Password</label>
             <div className="relative">
               <input
                 id="password"
@@ -69,13 +69,13 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition pr-12"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-[#23263a] dark:text-gray-100 transition pr-12"
                 placeholder="Enter your password"
               />
               <button
                 type="button"
                 tabIndex={-1}
-                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-blue-600 focus:outline-none"
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-300 hover:text-blue-600 focus:outline-none"
                 onClick={() => setShowPassword((s) => !s)}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
