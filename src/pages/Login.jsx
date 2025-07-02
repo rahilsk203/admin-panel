@@ -1,21 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Button,
-  Paper,
-  Typography,
-  TextField,
-  InputAdornment,
-  IconButton,
-  CircularProgress,
-  Fade,
-} from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
-
-// Placeholder for logo (replace with actual image or SVG)
 import Logo from '../assets/logo.png'; // Add your logo file in the project directory
 
 export default function Login() {
@@ -43,151 +29,83 @@ export default function Login() {
   };
 
   return (
-    <Box
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      minHeight="100vh"
-      sx={{
-        background: 'linear-gradient(135deg, #6e8efb, #a777e3)', // Gradient background
-        p: 2,
-      }}
-    >
-      <Fade in timeout={800}>
-        <Paper
-          elevation={6}
-          sx={{
-            p: { xs: 3, sm: 4 },
-            minWidth: { xs: 300, sm: 340 },
-            maxWidth: 400,
-            borderRadius: 3,
-            bgcolor: 'white',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.15)', // Enhanced shadow
-            transition: 'transform 0.3s ease-in-out',
-            '&:hover': {
-              transform: 'translateY(-5px)', // Subtle lift effect on hover
-            },
-          }}
-        >
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 p-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 transition-transform duration-300 hover:-translate-y-1">
           {/* Logo Section */}
-          <Box display="flex" justifyContent="center" mb={3}>
+        <div className="flex justify-center mb-6">
             {Logo ? (
               <img
                 src={Logo}
                 alt="Tech Clinic Admin Logo"
-                style={{ maxWidth: '150px', height: 'auto' }}
+              className="max-w-[150px] h-auto"
               />
             ) : (
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 700,
-                  color: '#3f51b5',
-                  textAlign: 'center',
-                  letterSpacing: 1.2,
-                }}
-              >
+            <div className="text-3xl font-bold text-blue-700 tracking-wide text-center">
                 Tech Clinic Admin
-              </Typography>
-            )}
-          </Box>
-
-          <Typography
-            variant="h5"
-            mb={3}
-            align="center"
-            sx={{ fontWeight: 600, color: '#333' }}
-          >
-            Admin Login
-          </Typography>
-
-          <form onSubmit={handleSubmit} autoComplete="off">
-            <TextField
-              label="Username"
+            </div>
+          )}
+        </div>
+        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">Admin Login</h2>
+        <form onSubmit={handleSubmit} autoComplete="off" className="space-y-5">
+          <div>
+            <label className="block text-gray-700 font-medium mb-1" htmlFor="username">Username</label>
+            <input
+              id="username"
+              type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              fullWidth
-              margin="normal"
               required
               autoFocus
-              variant="outlined"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '8px',
-                  '&:hover fieldset': {
-                    borderColor: '#3f51b5',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#3f51b5',
-                  },
-                },
-              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+              placeholder="Enter your username"
             />
-            <TextField
-              label="Password"
+          </div>
+          <div>
+            <label className="block text-gray-700 font-medium mb-1" htmlFor="password">Password</label>
+            <div className="relative">
+              <input
+                id="password"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              fullWidth
-              margin="normal"
               required
-              variant="outlined"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '8px',
-                  '&:hover fieldset': {
-                    borderColor: '#3f51b5',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#3f51b5',
-                  },
-                },
-              }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition pr-12"
+                placeholder="Enter your password"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-blue-600 focus:outline-none"
+                onClick={() => setShowPassword((s) => !s)}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      onClick={() => setShowPassword((s) => !s)}
-                      edge="end"
-                      sx={{ color: '#3f51b5' }}
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <Button
+              >
+                {showPassword ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12.001C3.226 15.477 7.113 19.5 12 19.5c1.658 0 3.237-.356 4.646-.99m3.374-2.14A10.45 10.45 0 0022.066 12c-1.292-3.477-5.179-7.5-10.066-7.5-1.272 0-2.496.222-3.646.623M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12c0-1.192.214-2.333.611-3.382m2.076-3.35A10.477 10.477 0 0112 4.5c4.887 0 8.774 4.023 10.066 7.5-.334.902-.83 1.927-1.465 2.963M15.75 15.75A6.75 6.75 0 016.75 8.25m9.5 9.5l-13-13" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+          <button
               type="submit"
-              variant="contained"
-              fullWidth
-              sx={{
-                mt: 3,
-                py: 1.5,
-                borderRadius: '8px',
-                background: 'linear-gradient(90deg, #3f51b5, #7986cb)', // Gradient button
-                boxShadow: '0 4px 12px rgba(63, 81, 181, 0.3)',
-                textTransform: 'none',
-                fontSize: '1.1rem',
-                fontWeight: 500,
-                '&:hover': {
-                  background: 'linear-gradient(90deg, #303f9f, #5c6bc0)',
-                  boxShadow: '0 6px 16px rgba(63, 81, 181, 0.4)',
-                },
-                '&:disabled': {
-                  background: '#bdbdbd',
-                  cursor: 'not-allowed',
-                },
-              }}
+            className={`w-full py-3 rounded-lg text-white font-semibold text-lg shadow-md transition bg-gradient-to-r from-blue-600 to-purple-500 hover:from-blue-700 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 flex items-center justify-center ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
               disabled={loading}
-              endIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
-            >
+          >
+            {loading && (
+              <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            )}
               {loading ? 'Logging in...' : 'Login'}
-            </Button>
+          </button>
           </form>
-        </Paper>
-      </Fade>
-    </Box>
+      </div>
+    </div>
   );
 }

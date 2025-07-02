@@ -1,15 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import {
-  Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, IconButton, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Tooltip, InputAdornment
-} from '@mui/material';
-import { Add, Edit, Delete, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 
 const API = 'https://techclinic-api.techclinic-api.workers.dev/api/admins';
 const REGISTER_API = 'https://techclinic-api.techclinic-api.workers.dev/api/register';
 
 const defaultAdmin = { id: '', username: '', password: '' };
+
+function IconEdit() {
+  return (
+    <svg className="w-5 h-5 text-blue-600 hover:text-blue-800" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h2v2H7v-2h2zm0 0v-2h2v2H9z" /></svg>
+  );
+}
+function IconDelete() {
+  return (
+    <svg className="w-5 h-5 text-red-600 hover:text-red-800" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+  );
+}
+function IconAdd() {
+  return (
+    <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+  );
+}
+function IconEye({ show }) {
+  return show ? (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12.001C3.226 15.477 7.113 19.5 12 19.5c1.658 0 3.237-.356 4.646-.99m3.374-2.14A10.45 10.45 0 0022.066 12c-1.292-3.477-5.179-7.5-10.066-7.5-1.272 0-2.496.222-3.646.623M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+  ) : (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12c0-1.192.214-2.333.611-3.382m2.076-3.35A10.477 10.477 0 0112 4.5c4.887 0 8.774 4.023 10.066 7.5-.334.902-.83 1.927-1.465 2.963M15.75 15.75A6.75 6.75 0 016.75 8.25m9.5 9.5l-13-13" /></svg>
+  );
+}
 
 export default function Admins() {
   const [admins, setAdmins] = useState([]);
@@ -44,6 +63,7 @@ export default function Admins() {
     setForm(admin);
     setEditMode(!!admin.id);
     setOpen(true);
+    setShowPassword(false);
   };
   const handleClose = () => {
     setForm(defaultAdmin);
@@ -91,75 +111,97 @@ export default function Admins() {
   };
 
   return (
-    <Box>
-      <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-        <Typography variant="h5">Admins</Typography>
-        <Button variant="contained" startIcon={<Add />} onClick={() => handleOpen()}>Add Admin</Button>
-      </Box>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Username</TableCell>
-              <TableCell>Created At</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
+    <div className="">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold text-gray-800">Admins</h2>
+        <button
+          className="flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg shadow transition"
+          onClick={() => handleOpen()}
+        >
+          <IconAdd /> Add Admin
+        </button>
+      </div>
+      <div className="overflow-x-auto bg-white rounded-lg shadow">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Created At</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
             {admins.map(admin => (
-              <TableRow key={admin.id}>
-                <TableCell>{admin.username}</TableCell>
-                <TableCell>{admin.created_at ? new Date(admin.created_at).toLocaleString() : ''}</TableCell>
-                <TableCell>
-                  <Tooltip title="Edit"><IconButton onClick={() => handleOpen(admin)}><Edit /></IconButton></Tooltip>
-                  <Tooltip title="Delete"><IconButton color="error" onClick={() => handleDelete(admin.id, admin.username)}><Delete /></IconButton></Tooltip>
-                </TableCell>
-              </TableRow>
+              <tr key={admin.id} className="hover:bg-gray-50">
+                <td className="px-4 py-2 whitespace-nowrap">{admin.username}</td>
+                <td className="px-4 py-2 whitespace-nowrap">{admin.created_at ? new Date(admin.created_at).toLocaleString() : ''}</td>
+                <td className="px-4 py-2 whitespace-nowrap flex gap-2">
+                  <button title="Edit" onClick={() => handleOpen(admin)} className="p-1 rounded hover:bg-blue-100"><IconEdit /></button>
+                  <button title="Delete" onClick={() => handleDelete(admin.id, admin.username)} className="p-1 rounded hover:bg-red-100"><IconDelete /></button>
+                </td>
+              </tr>
             ))}
             {admins.length === 0 && !loading && (
-              <TableRow><TableCell colSpan={3} align="center">No admins found</TableCell></TableRow>
+              <tr><td colSpan={3} className="text-center py-4 text-gray-400">No admins found</td></tr>
             )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
-        <DialogTitle>{editMode ? 'Edit Admin' : 'Add Admin'}</DialogTitle>
-        <DialogContent>
-          <TextField
-            margin="normal"
-            label="Username"
-            name="username"
-            value={form.username}
-            onChange={handleChange}
-            fullWidth
-            required
-          />
-          <TextField
-            margin="normal"
-            label="Password"
-            name="password"
-            type={showPassword ? 'text' : 'password'}
-            value={form.password}
-            onChange={handleChange}
-            fullWidth
-            required={!editMode}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword(s => !s)} edge="end">
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              )
-            }}
-            helperText={editMode ? 'Leave blank to keep current password' : ''}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained">{editMode ? 'Update' : 'Add'}</Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+          </tbody>
+        </table>
+        {loading && <div className="p-4 text-center text-gray-500">Loading...</div>}
+      </div>
+      {/* Modal */}
+      {open && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-xl shadow-lg w-full max-w-xs p-6 relative animate-fadeIn">
+            <h3 className="text-lg font-bold mb-4">{editMode ? 'Edit Admin' : 'Add Admin'}</h3>
+            <form
+              onSubmit={e => { e.preventDefault(); handleSubmit(); }}
+              className="space-y-3"
+            >
+              <div>
+                <label className="block text-gray-700 mb-1">Username</label>
+                <input
+                  name="username"
+                  value={form.username}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 mb-1">Password</label>
+                <div className="relative">
+                  <input
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={form.password}
+                    onChange={handleChange}
+                    required={!editMode}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 pr-10"
+                    placeholder={editMode ? 'Leave blank to keep current password' : ''}
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    className="absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 hover:text-blue-600 focus:outline-none"
+                    onClick={() => setShowPassword(s => !s)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    <IconEye show={showPassword} />
+                  </button>
+                </div>
+                {editMode && <div className="text-xs text-gray-400 mt-1">Leave blank to keep current password</div>}
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={handleClose} className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold">Cancel</button>
+                <button type="submit" className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold">{editMode ? 'Update' : 'Add'}</button>
+              </div>
+            </form>
+            <button onClick={handleClose} className="absolute top-2 right-2 text-gray-400 hover:text-gray-700">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
-} 
+}
