@@ -4,6 +4,11 @@ import { SnackbarProvider } from 'notistack';
 import Boxes from './pages/Boxes';
 import Parts from './pages/Parts';
 import Accessories from './pages/Accessories';
+import RepairJobs from './pages/RepairJobs';
+import AdminManagement from './pages/AdminManagement';
+import BoxAlerts from './pages/BoxAlerts';
+import Dashboard from './pages/Dashboard';
+import Customers from './pages/Customers';
 
 const Login = React.lazy(() => import('./pages/Login'));
 
@@ -51,67 +56,6 @@ function RequireAuth({ children }) {
   return children;
 }
 
-function Dashboard() {
-  const [counts, setCounts] = useState({ boxes: null, parts: null, accessories: null });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    Promise.all([
-      fetch('https://techclinic-api.techclinic-api.workers.dev/api/boxes/count', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json()),
-      fetch('https://techclinic-api.techclinic-api.workers.dev/api/parts/count', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json()),
-      fetch('https://techclinic-api.techclinic-api.workers.dev/api/accessories/count', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json()),
-    ])
-      .then(([boxes, parts, accessories]) => {
-        setCounts({
-          boxes: typeof boxes.count === 'number' ? boxes.count : 0,
-          parts: typeof parts.count === 'number' ? parts.count : 0,
-          accessories: typeof accessories.count === 'number' ? accessories.count : 0,
-        });
-        setLoading(false);
-      })
-      .catch((e) => {
-        setError('Failed to load stats');
-        setLoading(false);
-      });
-  }, []);
-
-  const statCard = (label, value) => (
-    <div className="rounded-2xl bg-white/80 dark:bg-[#23263a]/80 border border-blue-100 dark:border-gray-800 shadow p-5 flex flex-col items-center min-h-[80px] w-full">
-      <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
-        {loading ? (
-          <span className="animate-pulse bg-blue-100 dark:bg-blue-900 h-7 w-12 rounded" />
-        ) : error ? (
-          <span className="text-red-500">--</span>
-        ) : (
-          value
-        )}
-      </div>
-      <div className="text-sm text-gray-500 dark:text-gray-300">{label}</div>
-    </div>
-  );
-
-  return (
-    <div className="w-full h-full flex flex-col items-center justify-center py-8 px-2">
-      <div className="max-w-2xl w-full mx-auto">
-        <div className="rounded-3xl shadow-xl bg-white/80 dark:bg-[#23263a]/80 backdrop-blur-xl border border-blue-100 dark:border-gray-800 p-8 flex flex-col items-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-blue-700 dark:text-blue-300 mb-2 tracking-tight text-center">Welcome to TechClinic Admin Panel</h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300 text-center mb-4">Manage your inventory, parts, accessories, and admins with a modern dashboard.</p>
-        </div>
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {statCard('Boxes', counts.boxes)}
-          {statCard('Parts', counts.parts)}
-          {statCard('Accessories', counts.accessories)}
-        </div>
-        {error && <div className="text-center text-red-500 mt-4">{error}</div>}
-      </div>
-    </div>
-  );
-}
-
 const navItems = [
   {
     text: 'Dashboard',
@@ -140,6 +84,34 @@ const navItems = [
       <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
     ),
     path: '/accessories',
+  },
+  {
+    text: 'Repair Jobs',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+    ),
+    path: '/repair-jobs',
+  },
+  {
+    text: 'Admin Management',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+    ),
+    path: '/admin-management',
+  },
+  {
+    text: 'Box Alerts',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+    ),
+    path: '/box-alerts',
+  },
+  {
+    text: 'Customers',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+    ),
+    path: '/customers',
   },
 ];
 
@@ -270,6 +242,10 @@ export default function App() {
                         <Route path="/boxes" element={<Boxes />} />
                         <Route path="/parts" element={<Parts />} />
                         <Route path="/accessories" element={<Accessories />} />
+                        <Route path="/repair-jobs" element={<RepairJobs />} />
+                        <Route path="/admin-management" element={<AdminManagement />} />
+                        <Route path="/box-alerts" element={<BoxAlerts />} />
+                        <Route path="/customers" element={<Customers />} />
                       </Routes>
                     </Layout>
                   </RequireAuth>
