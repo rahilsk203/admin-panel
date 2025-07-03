@@ -12,11 +12,56 @@ const fallbackJobs = [
   { id: '1', customer_id: '1', status: 'In Progress', notes: 'Test note', created_at: '2025-07-03T10:00:00Z' },
   { id: '2', customer_id: '2', status: 'Completed', notes: 'Done', created_at: '2025-07-02T12:00:00Z' },
 ];
+const fallbackParts = [
+  { id: 'P001', name: 'Battery' },
+  { id: 'P002', name: 'Screen' },
+  { id: 'P003', name: 'Motherboard' },
+];
+const fallbackBoxes = [
+  {
+    id: 'B001',
+    name: 'Storage Box A',
+    quantity: 50,
+    parts: [
+      { part_id: 'P001', quantity: 20 },
+      { part_id: 'P002', quantity: 30 },
+      { part_id: 'P003', quantity: 0 }, // Zero quantity, won't appear in dropdown
+    ],
+  },
+  {
+    id: 'B002',
+    name: 'Storage Box B',
+    quantity: 30,
+    parts: [
+      { part_id: 'P002', quantity: 10 },
+      { part_id: 'P003', quantity: 20 },
+    ],
+  },
+  {
+    id: 'B003',
+    name: 'Storage Box C',
+    quantity: 75,
+    parts: [
+      { part_id: 'P001', quantity: 25 },
+      { part_id: 'P003', quantity: 50 },
+      { part_id: 'P002', quantity: 0 }, // Zero quantity, won't appear in dropdown
+    ],
+  },
+];
 
-// SkeletonCard
+// Debounce function for search input
+function debounce(func, wait) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
+
+// SkeletonCard (unchanged)
 function SkeletonCard() {
   return (
-    <div className="animate-pulse bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 flex flex-col gap-3">
+    <div className="animate-pulse bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6 flex flex-col gap-3">
       <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded-lg w-2/3" />
       <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-lg w-1/2" />
       <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-lg w-1/3" />
@@ -24,7 +69,7 @@ function SkeletonCard() {
   );
 }
 
-// EmptyState
+// EmptyState (unchanged)
 function EmptyState({ text = 'No data found', sub = '' }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-gray-400">
@@ -35,7 +80,7 @@ function EmptyState({ text = 'No data found', sub = '' }) {
   );
 }
 
-// RepairJobDrawer (for add/edit)
+// RepairJobDrawer (unchanged)
 function RepairJobDrawer({ open, onClose, onSave, form, setForm, loading, customers, editMode }) {
   return (
     <div
@@ -44,39 +89,39 @@ function RepairJobDrawer({ open, onClose, onSave, form, setForm, loading, custom
       }`}
     >
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
         role="button"
         aria-label="Close drawer"
         tabIndex={-1}
       />
       <div
-        className={`relative w-full sm:w-[450px] h-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg shadow-2xl border-l border-gray-200/50 dark:border-gray-700/50 flex flex-col rounded-l-3xl transition-transform duration-300 ease-in-out ${
+        className={`relative w-full h-full sm:w-[400px] sm:max-w-[90vw] bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg shadow-2xl border-l border-gray-200/50 dark:border-gray-700/50 flex flex-col rounded-l-3xl sm:rounded-t-none transition-transform duration-300 ease-in-out ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex-1 flex flex-col h-full">
+        <div className="flex-1 flex flex-col h-full max-h-[calc(100vh-80px)]">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-gray-500 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-transform duration-200 hover:scale-110 rounded-full p-2 bg-white/50 dark:bg-gray-800/50"
+            className="absolute top-4 right-4 text-gray-500 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-transform duration-200 hover:scale-110 rounded-full p-3 bg-white/50 dark:bg-gray-800/50"
             aria-label="Close drawer"
             data-tooltip-id="close-drawer"
             data-tooltip-content="Close"
           >
             <X className="w-6 h-6" />
           </button>
-          <Tooltip id="close-drawer" place="left" />
-          <h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2 text-center tracking-tight px-6 pt-10">
+          <Tooltip id="close-drawer" place="top-start" className="hidden sm:block" />
+          <h3 className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2 text-center tracking-tight px-4 sm:px-6 pt-10">
             {editMode ? 'Edit Repair Job' : 'Add Repair Job'}
           </h3>
-          <div className="border-b border-gray-200/50 dark:border-gray-700/50 mb-6 mx-6" />
-          <form id="repairjob-form" onSubmit={onSave} className="space-y-5 px-6 pb-24 flex-1 overflow-y-auto">
+          <div className="border-b border-gray-200/50 dark:border-gray-700/50 mb-6 mx-4 sm:mx-6" />
+          <form id="repairjob-form" onSubmit={onSave} className="space-y-6 px-4 sm:px-6 pb-24 flex-1 overflow-y-auto">
             <div>
-              <label className="block text-gray-700 dark:text-gray-300 mb-1.5 font-medium">Customer</label>
+              <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-2">Customer</label>
               <select
                 name="customer_id"
                 required
-                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 dark:bg-gray-800/80 dark:text-gray-100 transition"
+                className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 dark:bg-gray-800/80 dark:text-gray-100 transition"
                 value={form.customer_id || ''}
                 onChange={e => setForm(f => ({ ...f, customer_id: e.target.value }))}
                 disabled={editMode}
@@ -90,14 +135,14 @@ function RepairJobDrawer({ open, onClose, onSave, form, setForm, loading, custom
                   </option>
                 ))}
               </select>
-              <Tooltip id="customer-select" place="top" />
+              <Tooltip id="customer-select" place="top-start" className="hidden sm:block" />
             </div>
             <div>
-              <label className="block text-gray-700 dark:text-gray-300 mb-1.5 font-medium">Status</label>
+              <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
               <select
                 name="status"
                 required
-                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 dark:bg-gray-800/80 dark:text-gray-100 transition"
+                className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 dark:bg-gray-800/80 dark:text-gray-100 transition"
                 value={form.status || ''}
                 onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
                 data-tooltip-id="status-input"
@@ -108,13 +153,13 @@ function RepairJobDrawer({ open, onClose, onSave, form, setForm, loading, custom
                 <option value="In Progress">In Progress</option>
                 <option value="Completed">Completed</option>
               </select>
-              <Tooltip id="status-input" place="top" />
+              <Tooltip id="status-input" place="top-start" className="hidden sm:block" />
             </div>
             <div>
-              <label className="block text-gray-700 dark:text-gray-300 mb-1.5 font-medium">Notes</label>
+              <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-2">Notes</label>
               <textarea
                 name="notes"
-                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 dark:bg-gray-800/80 dark:text-gray-100 transition"
+                className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 dark:bg-gray-800/80 dark:text-gray-100 transition"
                 value={form.notes || ''}
                 onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
                 placeholder="Add any relevant notes"
@@ -122,39 +167,39 @@ function RepairJobDrawer({ open, onClose, onSave, form, setForm, loading, custom
                 data-tooltip-id="notes-input"
                 data-tooltip-content="Optional notes for the repair job"
               />
-              <Tooltip id="notes-input" place="top" />
+              <Tooltip id="notes-input" place="top-start" className="hidden sm:block" />
             </div>
           </form>
-          <div className="absolute bottom-0 left-0 w-full bg-white/90 dark:bg-gray-900/90 border-t border-gray-200/50 dark:border-gray-700/50 flex justify-end gap-3 px-6 py-4 rounded-b-3xl shadow-lg">
+          <div className="absolute bottom-0 left-0 w-full bg-white/90 dark:bg-gray-900/90 border-t border-gray-200/50 dark:border-gray-700/50 flex justify-end gap-3 px-4 sm:px-6 py-4 rounded-b-3xl shadow-lg">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-100 font-semibold transition-transform duration-200 hover:scale-105"
+              className="px-5 py-3 text-sm sm:text-base rounded-xl bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-100 font-semibold transition-transform duration-200 hover:scale-105"
               data-tooltip-id="cancel-button"
               data-tooltip-content="Cancel changes"
             >
               Cancel
             </button>
-            <Tooltip id="cancel-button" place="top" />
+            <Tooltip id="cancel-button" place="top-start" className="hidden sm:block" />
             <button
               type="submit"
               form="repairjob-form"
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-transform duration-200 hover:scale-105 flex items-center gap-2"
+              className="px-5 py-3 text-sm sm:text-base rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-transform duration-200 hover:scale-105 flex items-center gap-2 min-w-[120px]"
               disabled={loading}
               data-tooltip-id="save-button"
               data-tooltip-content={editMode ? 'Update repair job' : 'Save new repair job'}
             >
               {loading ? (
-                <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                <svg className="animate-spin h-6 w-6 text-white" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                 </svg>
               ) : (
-                <Save className="w-5 h-5" />
+                <Save className="w-6 h-6" />
               )}
               {editMode ? 'Update' : 'Save'}
             </button>
-            <Tooltip id="save-button" place="top" />
+            <Tooltip id="save-button" place="top-start" className="hidden sm:block" />
           </div>
         </div>
       </div>
@@ -162,8 +207,54 @@ function RepairJobDrawer({ open, onClose, onSave, form, setForm, loading, custom
   );
 }
 
-// JobDetailsDrawer (for view-only with part assignment)
-function JobDetailsDrawer({ open, onClose, job, customers, partsUsed, partLoading, onEdit, onAssignPart, partForm, setPartForm, partLoadingState }) {
+// JobDetailsDrawer (updated to filter parts by quantity > 0 and limit quantity input)
+function JobDetailsDrawer({ open, onClose, job, customers, partsUsed, partLoading, onEdit, onAssignPart, partForm, setPartForm, partLoadingState, parts, boxes }) {
+  const { enqueueSnackbar } = useSnackbar();
+  const [availableParts, setAvailableParts] = useState([]);
+
+  // Fetch parts for the selected box
+  useEffect(() => {
+    if (!partForm.box_id) {
+      setAvailableParts([]);
+      return;
+    }
+    const fetchPartsForBox = async () => {
+      const token = localStorage.getItem('token');
+      const selectedBox = boxes.find(b => b.id === partForm.box_id);
+      if (!selectedBox) {
+        setAvailableParts([]);
+        return;
+      }
+      try {
+        const res = await fetch(`https://techclinic-api.techclinic-api.workers.dev/api/boxes/${partForm.box_id}/parts`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to fetch parts for box');
+        // Filter parts with quantity > 0
+        setAvailableParts(data.filter(p => p.quantity > 0) || selectedBox.parts.filter(p => p.quantity > 0) || []);
+      } catch (err) {
+        console.error('Fetch parts for box error:', err);
+        enqueueSnackbar('Failed to fetch parts for box. Using fallback data.', { variant: 'error' });
+        setAvailableParts(selectedBox.parts?.filter(p => p.quantity > 0) || []);
+      }
+    };
+    fetchPartsForBox();
+  }, [partForm.box_id, boxes, enqueueSnackbar]);
+
+  // Reset part_id and quantity when box_id changes
+  useEffect(() => {
+    setPartForm(prev => ({ ...prev, part_id: '', quantity: 1 }));
+  }, [partForm.box_id, setPartForm]);
+
+  // Get max quantity for the selected part
+  const maxQuantity = useMemo(() => {
+    if (!partForm.box_id || !partForm.part_id) return 1;
+    const selectedBox = boxes.find(b => b.id === partForm.box_id);
+    const selectedPart = selectedBox?.parts?.find(p => p.part_id === partForm.part_id);
+    return selectedPart?.quantity || 1;
+  }, [partForm.box_id, partForm.part_id, boxes]);
+
   const getCustomerName = (id) => {
     const c = customers.find(c => c.id === id);
     return c ? `${c.name} (${c.mobile_number})` : id || 'Unknown';
@@ -193,67 +284,67 @@ function JobDetailsDrawer({ open, onClose, job, customers, partsUsed, partLoadin
         tabIndex={-1}
       />
       <div
-        className={`relative w-full sm:w-[450px] h-full bg-gradient-to-b from-white/90 to-gray-100/90 dark:from-gray-900/90 dark:to-gray-800/90 backdrop-blur-md shadow-xl border-l border-gray-200/50 dark:border-gray-700/50 flex flex-col rounded-l-3xl transition-transform duration-300 ease-in-out ${
+        className={`relative w-full h-full sm:w-[400px] sm:max-w-[90vw] bg-gradient-to-b from-white/90 to-gray-100/90 dark:from-gray-900/90 dark:to-gray-800/90 backdrop-blur-md shadow-xl border-l border-gray-200/50 dark:border-gray-700/50 flex flex-col rounded-l-3xl sm:rounded-t-none transition-transform duration-300 ease-in-out ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex-1 flex flex-col h-full p-6">
+        <div className="flex-1 flex flex-col h-full max-h-[calc(100vh-80px)] p-4 sm:p-6">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-3xl font-bold text-blue-700 dark:text-blue-300 tracking-tight">
+            <h3 className="text-xl sm:text-3xl font-bold text-blue-700 dark:text-blue-300 tracking-tight">
               Repair Job Details
             </h3>
             <div className="flex gap-2">
               <button
                 onClick={onEdit}
-                className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-transform duration-200 hover:scale-110 rounded-full p-2 bg-white/50 dark:bg-gray-800/50"
+                className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-transform duration-200 hover:scale-110 rounded-full p-3 bg-white/50 dark:bg-gray-800/50"
                 aria-label="Edit repair job"
                 data-tooltip-id="edit-details-drawer"
                 data-tooltip-content="Edit this job"
               >
-                <Save className="w-5 h-5" />
+                <Save className="w-6 h-6" />
               </button>
               <button
                 onClick={onClose}
-                className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-transform duration-200 hover:scale-110 rounded-full p-2 bg-white/50 dark:bg-gray-800/50"
+                className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-transform duration-200 hover:scale-110 rounded-full p-3 bg-white/50 dark:bg-gray-800/50"
                 aria-label="Close drawer"
                 data-tooltip-id="close-details-drawer"
                 data-tooltip-content="Close"
               >
-                <X className="w-5 h-5" />
+                <X className="w-6 h-6" />
               </button>
-              <Tooltip id="edit-details-drawer" place="left" />
-              <Tooltip id="close-details-drawer" place="left" />
+              <Tooltip id="edit-details-drawer" place="top-start" className="hidden sm:block" />
+              <Tooltip id="close-details-drawer" place="top-start" className="hidden sm:block" />
             </div>
           </div>
           <div className="flex-1 overflow-y-auto space-y-6">
             <div>
-              <label className="block text-gray-700 dark:text-gray-300 font-medium mb-1">Job ID</label>
-              <div className="text-gray-900 dark:text-gray-100 text-lg">{job?.id || 'N/A'}</div>
+              <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-1">Job ID</label>
+              <div className="text-gray-900 dark:text-gray-100 text-base sm:text-lg">{job?.id || 'N/A'}</div>
             </div>
             <div>
-              <label className="block text-gray-700 dark:text-gray-300 font-medium mb-1">Customer</label>
-              <div className="text-gray-900 dark:text-gray-100 text-lg">{getCustomerName(job?.customer_id)}</div>
+              <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-1">Customer</label>
+              <div className="text-gray-900 dark:text-gray-100 text-base sm:text-lg">{getCustomerName(job?.customer_id)}</div>
             </div>
             <div>
-              <label className="block text-gray-700 dark:text-gray-300 font-medium mb-1">Status</label>
-              <span className={`text-sm font-medium px-3 py-1.5 rounded-full ${getStatusColor(job?.status)}`}>
+              <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+              <span className={`text-xs sm:text-sm font-medium px-3 py-1.5 rounded-full ${getStatusColor(job?.status)}`}>
                 {job?.status || 'N/A'}
               </span>
             </div>
             <div>
-              <label className="block text-gray-700 dark:text-gray-300 font-medium mb-1">Notes</label>
-              <div className="text-gray-900 dark:text-gray-100 text-lg">{job?.notes || 'No notes'}</div>
+              <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
+              <div className="text-gray-900 dark:text-gray-100 text-base sm:text-lg">{job?.notes || 'No notes'}</div>
             </div>
             <div>
-              <label className="block text-gray-700 dark:text-gray-300 font-medium mb-1">Created</label>
-              <div className="text-gray-900 dark:text-gray-100 text-lg">
+              <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-1">Created</label>
+              <div className="text-gray-900 dark:text-gray-100 text-base sm:text-lg">
                 {job?.created_at
                   ? new Date(job.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
                   : 'N/A'}
               </div>
             </div>
             <div>
-              <label className="block text-gray-700 dark:text-gray-300 font-medium mb-1">Parts Used</label>
+              <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-1">Parts Used</label>
               {partLoading ? (
                 <SkeletonCard />
               ) : partsUsed.length === 0 ? (
@@ -280,74 +371,95 @@ function JobDetailsDrawer({ open, onClose, job, customers, partsUsed, partLoadin
               )}
             </div>
             <div>
-              <h4 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-3">Assign Part</h4>
-              <form onSubmit={onAssignPart} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <h4 className="text-lg sm:text-xl font-semibold text-gray-700 dark:text-gray-300 mb-3">Assign Part</h4>
+              <form onSubmit={onAssignPart} className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-4">
                 <div>
-                  <input
-                    name="part_id"
-                    className={`w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 dark:bg-gray-800/80 dark:text-gray-100 transition ${
-                      partForm.part_id && !/^[a-zA-Z0-9]+$/.test(partForm.part_id) ? 'border-red-500' : ''
-                    }`}
-                    placeholder="Part ID"
-                    value={partForm.part_id}
-                    onChange={e => setPartForm({ ...partForm, part_id: e.target.value })}
+                  <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-2">Box</label>
+                  <select
+                    name="box_id"
                     required
-                    aria-label="Part ID"
-                    data-tooltip-id="part-id"
-                    data-tooltip-content="Enter alphanumeric part ID"
-                  />
-                  <Tooltip id="part-id" place="top" />
+                    className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 dark:bg-gray-800/80 dark:text-gray-100 transition"
+                    value={partForm.box_id || ''}
+                    onChange={e => setPartForm({ ...partForm, box_id: e.target.value })}
+                    data-tooltip-id="box-id"
+                    data-tooltip-content="Select a box"
+                  >
+                    <option value="">Select a box</option>
+                    {boxes.map(b => (
+                      <option key={b.id} value={b.id}>
+                        {b.name} ({b.quantity} parts)
+                      </option>
+                    ))}
+                  </select>
+                  <Tooltip id="box-id" place="top-start" className="hidden sm:block" />
                 </div>
                 <div>
-                  <input
-                    name="box_id"
-                    className={`w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 dark:bg-gray-800/80 dark:text-gray-100 transition ${
-                      partForm.box_id && !/^[a-zA-Z0-9]+$/.test(partForm.box_id) ? 'border-red-500' : ''
-                    }`}
-                    placeholder="Box ID"
-                    value={partForm.box_id}
-                    onChange={e => setPartForm({ ...partForm, box_id: e.target.value })}
+                  <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-2">Part</label>
+                  <select
+                    name="part_id"
                     required
-                    aria-label="Box ID"
-                    data-tooltip-id="box-id"
-                    data-tooltip-content="Enter alphanumeric box ID"
-                  />
-                  <Tooltip id="box-id" place="top" />
+                    className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 dark:bg-gray-800/80 dark:text-gray-100 transition"
+                    value={partForm.part_id || ''}
+                    onChange={e => setPartForm({ ...partForm, part_id: e.target.value, quantity: 1 })}
+                    disabled={!partForm.box_id}
+                    data-tooltip-id="part-id"
+                    data-tooltip-content="Select a part"
+                  >
+                    <option value="">Select a part</option>
+                    {availableParts.map(p => {
+                      const part = parts.find(part => part.id === p.part_id);
+                      return (
+                        <option key={p.part_id} value={p.part_id}>
+                          {part ? `${part.name} (${p.quantity} available)` : p.part_id}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <Tooltip id="part-id" place="top-start" className="hidden sm:block" />
                 </div>
                 <div className="flex items-center gap-2">
                   <input
                     name="quantity"
                     type="number"
                     min="1"
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 dark:bg-gray-800/80 dark:text-gray-100 transition"
+                    max={maxQuantity}
+                    className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 dark:bg-gray-800/80 dark:text-gray-100 transition"
                     placeholder="Quantity"
                     value={partForm.quantity}
-                    onChange={e => setPartForm({ ...partForm, quantity: parseInt(e.target.value) || 1 })}
+                    onChange={e => {
+                      const value = parseInt(e.target.value) || 1;
+                      if (value > maxQuantity) {
+                        enqueueSnackbar(`Cannot exceed ${maxQuantity} available parts`, { variant: 'warning' });
+                        setPartForm({ ...partForm, quantity: maxQuantity });
+                      } else {
+                        setPartForm({ ...partForm, quantity: value });
+                      }
+                    }}
                     required
                     aria-label="Quantity"
                     data-tooltip-id="quantity"
-                    data-tooltip-content="Enter quantity (minimum 1)"
+                    data-tooltip-content={`Enter quantity (max ${maxQuantity})`}
                   />
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-transform duration-200 hover:scale-105 flex items-center gap-2"
-                    disabled={partLoadingState || !job?.id}
+                    className="px-4 py-3 text-sm sm:text-base rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-transform duration-200 hover:scale-105 flex items-center gap-2 min-w-[100px]"
+                    disabled={partLoadingState || !job?.id || !partForm.box_id || !partForm.part_id}
                     aria-label="Assign part to job"
                     data-tooltip-id="assign-part"
                     data-tooltip-content="Assign part to job"
                   >
                     {partLoadingState ? (
-                      <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                      <svg className="animate-spin h-6 w-6 text-white" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                       </svg>
                     ) : (
-                      <Plus className="w-5 h-5" />
+                      <Plus className="w-6 h-6" />
                     )}
                     Assign
                   </button>
-                  <Tooltip id="quantity" place="top" />
-                  <Tooltip id="assign-part" place="top" />
+                  <Tooltip id="quantity" place="top-start" className="hidden sm:block" />
+                  <Tooltip id="assign-part" place="top-start" className="hidden sm:block" />
                 </div>
               </form>
             </div>
@@ -366,6 +478,8 @@ export default function RepairJobs() {
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState({ customer_id: '', status: '', notes: '' });
   const [customers, setCustomers] = useState(fallbackCustomers);
+  const [parts, setParts] = useState(fallbackParts);
+  const [boxes, setBoxes] = useState(fallbackBoxes);
   const [allJobs, setAllJobs] = useState(fallbackJobs);
   const [jobsLoading, setJobsLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -376,28 +490,47 @@ export default function RepairJobs() {
   const [searchTerm, setSearchTerm] = useState('');
   const [initialLoading, setInitialLoading] = useState(true);
 
-  // Fetch customers with fallback
+  // Debounced search handler
+  const debouncedSetSearchTerm = useCallback(
+    debounce((value) => setSearchTerm(value), 300),
+    []
+  );
+
+  // Fetch customers, parts, and boxes with fallback
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
       console.error('No token found');
       enqueueSnackbar('Authentication token missing. Using fallback data.', { variant: 'warning' });
       setCustomers(fallbackCustomers);
+      setParts(fallbackParts);
+      setBoxes(fallbackBoxes);
       setInitialLoading(false);
       return;
     }
-    fetch('https://techclinic-api.techclinic-api.workers.dev/api/customers', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(r => r.json())
-      .then(data => {
-        setCustomers(Array.isArray(data) && data.length > 0 ? data : fallbackCustomers);
+    Promise.all([
+      fetch('https://techclinic-api.techclinic-api.workers.dev/api/customers', {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then(r => r.json()),
+      fetch('https://techclinic-api.techclinic-api.workers.dev/api/parts', {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then(r => r.json()),
+      fetch('https://techclinic-api.techclinic-api.workers.dev/api/boxes', {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then(r => r.json()),
+    ])
+      .then(([customerData, partsData, boxesData]) => {
+        setCustomers(Array.isArray(customerData) && customerData.length > 0 ? customerData : fallbackCustomers);
+        setParts(Array.isArray(partsData) && partsData.length > 0 ? partsData : fallbackParts);
+        setBoxes(Array.isArray(boxesData) && boxesData.length > 0 ? boxesData : fallbackBoxes);
         setInitialLoading(false);
       })
       .catch(err => {
-        console.error('Customer fetch error:', err);
-        enqueueSnackbar('Failed to fetch customers. Using fallback data.', { variant: 'error' });
+        console.error('Fetch error:', err);
+        enqueueSnackbar('Failed to fetch data. Using fallback data.', { variant: 'error' });
         setCustomers(fallbackCustomers);
+        setParts(fallbackParts);
+        setBoxes(fallbackBoxes);
         setInitialLoading(false);
       });
   }, [enqueueSnackbar]);
@@ -500,8 +633,18 @@ export default function RepairJobs() {
       enqueueSnackbar('Quantity must be at least 1', { variant: 'error' });
       return;
     }
-    if (!/^[a-zA-Z0-9]+$/.test(partForm.part_id) || !/^[a-zA-Z0-9]+$/.test(partForm.box_id)) {
-      enqueueSnackbar('Part ID and Box ID must be alphanumeric', { variant: 'error' });
+    const selectedBox = boxes.find(b => b.id === partForm.box_id);
+    if (!selectedBox) {
+      enqueueSnackbar('Invalid box selected', { variant: 'error' });
+      return;
+    }
+    const selectedPart = selectedBox.parts?.find(p => p.part_id === partForm.part_id);
+    if (!selectedPart) {
+      enqueueSnackbar('Invalid part selected for this box', { variant: 'error' });
+      return;
+    }
+    if (partForm.quantity > selectedPart.quantity) {
+      enqueueSnackbar(`Cannot assign ${partForm.quantity} parts; only ${selectedPart.quantity} available in ${selectedBox.name}`, { variant: 'error' });
       return;
     }
     setPartLoading(true);
@@ -517,6 +660,20 @@ export default function RepairJobs() {
       if (!res.ok) throw new Error(data.error || 'Failed to assign part');
       enqueueSnackbar('Part assigned to repair job!', { variant: 'success' });
       setPartForm({ part_id: '', box_id: '', quantity: 1 });
+      // Update box quantity and parts
+      setBoxes(prevBoxes =>
+        prevBoxes.map(b =>
+          b.id === partForm.box_id
+            ? {
+                ...b,
+                quantity: b.quantity - partForm.quantity,
+                parts: b.parts.map(p =>
+                  p.part_id === partForm.part_id ? { ...p, quantity: p.quantity - partForm.quantity } : p
+                ),
+              }
+            : b
+        )
+      );
       fetchPartsUsed(selectedJob.id);
     } catch (err) {
       console.error('Assign part error:', err);
@@ -567,26 +724,26 @@ export default function RepairJobs() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-10 px-4">
+    <div className="max-w-4xl mx-auto py-8 px-4 min-h-screen">
       {/* Header with search */}
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
-        <h2 className="text-3xl font-bold text-blue-600 dark:text-blue-400">Repair Jobs</h2>
-        <div className="flex items-center gap-4">
-          <div className="relative">
+      <div className="flex flex-col items-start sm:flex-row sm:items-center justify-between mb-8 gap-4">
+        <h2 className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">Repair Jobs</h2>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
               placeholder="Search by customer or status"
-              className="pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 dark:bg-gray-800/80 dark:text-gray-100 w-64"
+              className="w-full pl-10 pr-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 dark:bg-gray-800/80 dark:text-gray-100"
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={e => debouncedSetSearchTerm(e.target.value)}
               data-tooltip-id="search-input"
               data-tooltip-content="Search repair jobs"
             />
-            <Tooltip id="search-input" place="top" />
+            <Tooltip id="search-input" place="top-start" className="hidden sm:block" />
           </div>
           <button
-            className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center gap-2 transition-transform duration-200 hover:scale-105"
+            className="px-4 py-2 text-sm sm:text-base rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center gap-2 transition-transform duration-200 hover:scale-105 w-full sm:w-auto"
             onClick={() => {
               setForm({ customer_id: '', status: '', notes: '' });
               setEditMode(false);
@@ -598,7 +755,7 @@ export default function RepairJobs() {
             <Plus className="w-5 h-5" />
             Add Repair Job
           </button>
-          <Tooltip id="add-job" place="top" />
+          <Tooltip id="add-job" place="top-start" className="hidden sm:block" />
         </div>
       </div>
       {/* Add/Edit Drawer */}
@@ -624,6 +781,8 @@ export default function RepairJobs() {
         }}
         job={selectedJob || {}}
         customers={customers}
+        parts={parts}
+        boxes={boxes}
         partsUsed={partsUsed}
         partLoading={partLoading}
         onEdit={() => {
@@ -639,20 +798,20 @@ export default function RepairJobs() {
       />
       {/* Repair Jobs List */}
       <div className="mb-12">
-        <h4 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">All Repair Jobs</h4>
+        <h4 className="text-lg sm:text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">All Repair Jobs</h4>
         {jobsLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <SkeletonCard />
             <SkeletonCard />
           </div>
         ) : filteredJobs.length === 0 ? (
           <EmptyState text="No repair jobs found" sub="Try adding a new repair job or adjusting your search." />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {filteredJobs.map(job => (
               <div
                 key={job.id}
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 flex flex-col gap-2 border border-gray-200/50 dark:border-gray-700/50 cursor-pointer hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6 flex flex-col gap-2 border border-gray-200/50 dark:border-gray-700/50 cursor-pointer hover:shadow-xl transition-all duration-200 sm:hover:scale-[1.02]"
                 onClick={() => handleSelectJob(job)}
                 role="button"
                 tabIndex={0}
@@ -662,16 +821,16 @@ export default function RepairJobs() {
                 data-tooltip-content="Click to view details"
               >
                 <div className="flex justify-between items-center">
-                  <div className="font-semibold text-blue-600 dark:text-blue-400">Job ID: {job.id}</div>
-                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${getStatusColor(job.status)}`}>
+                  <div className="font-semibold text-blue-600 dark:text-blue-400 truncate">Job ID: {job.id}</div>
+                  <span className={`text-xs sm:text-sm font-medium px-2 py-1 rounded-full ${getStatusColor(job.status)}`}>
                     {job.status || 'N/A'}
                   </span>
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">Customer: {getCustomerName(job.customer_id)}</div>
-                <div className="text-xs text-gray-400 dark:text-gray-500">
+                <div className="text-sm text-gray-600 dark:text-gray-300 truncate">Customer: {getCustomerName(job.customer_id)}</div>
+                <div className="text-xs text-gray-400 dark:text-gray-500 truncate">
                   Created: {job.created_at ? new Date(job.created_at).toLocaleDateString('en-US', { dateStyle: 'medium' }) : 'N/A'}
                 </div>
-                <Tooltip id={`job-${job.id}`} place="top" />
+                <Tooltip id={`job-${job.id}`} place="top-start" className="hidden sm:block" />
               </div>
             ))}
           </div>
