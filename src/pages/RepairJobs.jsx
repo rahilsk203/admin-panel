@@ -18,35 +18,9 @@ const fallbackParts = [
   { id: 'P003', name: 'Motherboard' },
 ];
 const fallbackBoxes = [
-  {
-    id: 'B001',
-    name: 'Storage Box A',
-    quantity: 50,
-    parts: [
-      { part_id: 'P001', quantity: 20 },
-      { part_id: 'P002', quantity: 30 },
-      { part_id: 'P003', quantity: 0 }, // Zero quantity, won't appear in dropdown
-    ],
-  },
-  {
-    id: 'B002',
-    name: 'Storage Box B',
-    quantity: 30,
-    parts: [
-      { part_id: 'P002', quantity: 10 },
-      { part_id: 'P003', quantity: 20 },
-    ],
-  },
-  {
-    id: 'B003',
-    name: 'Storage Box C',
-    quantity: 75,
-    parts: [
-      { part_id: 'P001', quantity: 25 },
-      { part_id: 'P003', quantity: 50 },
-      { part_id: 'P002', quantity: 0 }, // Zero quantity, won't appear in dropdown
-    ],
-  },
+  { id: 'B001', name: 'Storage Box A', quantity: 50 },
+  { id: 'B002', name: 'Storage Box B', quantity: 30 },
+  { id: 'B003', name: 'Storage Box C', quantity: 75 },
 ];
 
 // Debounce function for search input
@@ -207,54 +181,8 @@ function RepairJobDrawer({ open, onClose, onSave, form, setForm, loading, custom
   );
 }
 
-// JobDetailsDrawer (updated to filter parts by quantity > 0 and limit quantity input)
+// JobDetailsDrawer (fixed syntax error and showing quantity in box_id dropdown)
 function JobDetailsDrawer({ open, onClose, job, customers, partsUsed, partLoading, onEdit, onAssignPart, partForm, setPartForm, partLoadingState, parts, boxes }) {
-  const { enqueueSnackbar } = useSnackbar();
-  const [availableParts, setAvailableParts] = useState([]);
-
-  // Fetch parts for the selected box
-  useEffect(() => {
-    if (!partForm.box_id) {
-      setAvailableParts([]);
-      return;
-    }
-    const fetchPartsForBox = async () => {
-      const token = localStorage.getItem('token');
-      const selectedBox = boxes.find(b => b.id === partForm.box_id);
-      if (!selectedBox) {
-        setAvailableParts([]);
-        return;
-      }
-      try {
-        const res = await fetch(`https://techclinic-api.techclinic-api.workers.dev/api/boxes/${partForm.box_id}/parts`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed to fetch parts for box');
-        // Filter parts with quantity > 0
-        setAvailableParts(data.filter(p => p.quantity > 0) || selectedBox.parts.filter(p => p.quantity > 0) || []);
-      } catch (err) {
-        console.error('Fetch parts for box error:', err);
-        enqueueSnackbar('Failed to fetch parts for box. Using fallback data.', { variant: 'error' });
-        setAvailableParts(selectedBox.parts?.filter(p => p.quantity > 0) || []);
-      }
-    };
-    fetchPartsForBox();
-  }, [partForm.box_id, boxes, enqueueSnackbar]);
-
-  // Reset part_id and quantity when box_id changes
-  useEffect(() => {
-    setPartForm(prev => ({ ...prev, part_id: '', quantity: 1 }));
-  }, [partForm.box_id, setPartForm]);
-
-  // Get max quantity for the selected part
-  const maxQuantity = useMemo(() => {
-    if (!partForm.box_id || !partForm.part_id) return 1;
-    const selectedBox = boxes.find(b => b.id === partForm.box_id);
-    const selectedPart = selectedBox?.parts?.find(p => p.part_id === partForm.part_id);
-    return selectedPart?.quantity || 1;
-  }, [partForm.box_id, partForm.part_id, boxes]);
-
   const getCustomerName = (id) => {
     const c = customers.find(c => c.id === id);
     return c ? `${c.name} (${c.mobile_number})` : id || 'Unknown';
@@ -374,6 +302,26 @@ function JobDetailsDrawer({ open, onClose, job, customers, partsUsed, partLoadin
               <h4 className="text-lg sm:text-xl font-semibold text-gray-700 dark:text-gray-300 mb-3">Assign Part</h4>
               <form onSubmit={onAssignPart} className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-4">
                 <div>
+                  <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-2">Part</label>
+                  <select
+                    name="part_id"
+                    required
+                    className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 dark:bg-gray-800/80 dark:text-gray-100 transition"
+                    value={partForm.part_id || ''}
+                    onChange={e => setPartForm({ ...partForm, part_id: e.target.value })}
+                    data-tooltip-id="part-id"
+                    data-tooltip-content="Select a part"
+                  >
+                    <option value="">Select a part</option>
+                    {parts.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} ({p.id})
+                      </option>
+                    ))}
+                  </select>
+                  <Tooltip id="part-id" place="top-start" className="hidden sm:block" />
+                </div>
+                <div>
                   <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-2">Box</label>
                   <select
                     name="box_id"
@@ -393,57 +341,24 @@ function JobDetailsDrawer({ open, onClose, job, customers, partsUsed, partLoadin
                   </select>
                   <Tooltip id="box-id" place="top-start" className="hidden sm:block" />
                 </div>
-                <div>
-                  <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-2">Part</label>
-                  <select
-                    name="part_id"
-                    required
-                    className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 dark:bg-gray-800/80 dark:text-gray-100 transition"
-                    value={partForm.part_id || ''}
-                    onChange={e => setPartForm({ ...partForm, part_id: e.target.value, quantity: 1 })}
-                    disabled={!partForm.box_id}
-                    data-tooltip-id="part-id"
-                    data-tooltip-content="Select a part"
-                  >
-                    <option value="">Select a part</option>
-                    {availableParts.map(p => {
-                      const part = parts.find(part => part.id === p.part_id);
-                      return (
-                        <option key={p.part_id} value={p.part_id}>
-                          {part ? `${part.name} (${p.quantity} available)` : p.part_id}
-                        </option>
-                      );
-                    })}
-                  </select>
-                  <Tooltip id="part-id" place="top-start" className="hidden sm:block" />
-                </div>
                 <div className="flex items-center gap-2">
                   <input
                     name="quantity"
                     type="number"
                     min="1"
-                    max={maxQuantity}
                     className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 dark:bg-gray-800/80 dark:text-gray-100 transition"
                     placeholder="Quantity"
                     value={partForm.quantity}
-                    onChange={e => {
-                      const value = parseInt(e.target.value) || 1;
-                      if (value > maxQuantity) {
-                        enqueueSnackbar(`Cannot exceed ${maxQuantity} available parts`, { variant: 'warning' });
-                        setPartForm({ ...partForm, quantity: maxQuantity });
-                      } else {
-                        setPartForm({ ...partForm, quantity: value });
-                      }
-                    }}
+                    onChange={e => setPartForm({ ...partForm, quantity: parseInt(e.target.value) || 1 })}
                     required
                     aria-label="Quantity"
                     data-tooltip-id="quantity"
-                    data-tooltip-content={`Enter quantity (max ${maxQuantity})`}
+                    data-tooltip-content="Enter quantity (minimum 1)"
                   />
                   <button
                     type="submit"
                     className="px-4 py-3 text-sm sm:text-base rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-transform duration-200 hover:scale-105 flex items-center gap-2 min-w-[100px]"
-                    disabled={partLoadingState || !job?.id || !partForm.box_id || !partForm.part_id}
+                    disabled={partLoadingState || !job?.id}
                     aria-label="Assign part to job"
                     data-tooltip-id="assign-part"
                     data-tooltip-content="Assign part to job"
@@ -634,17 +549,8 @@ export default function RepairJobs() {
       return;
     }
     const selectedBox = boxes.find(b => b.id === partForm.box_id);
-    if (!selectedBox) {
-      enqueueSnackbar('Invalid box selected', { variant: 'error' });
-      return;
-    }
-    const selectedPart = selectedBox.parts?.find(p => p.part_id === partForm.part_id);
-    if (!selectedPart) {
-      enqueueSnackbar('Invalid part selected for this box', { variant: 'error' });
-      return;
-    }
-    if (partForm.quantity > selectedPart.quantity) {
-      enqueueSnackbar(`Cannot assign ${partForm.quantity} parts; only ${selectedPart.quantity} available in ${selectedBox.name}`, { variant: 'error' });
+    if (selectedBox && partForm.quantity > selectedBox.quantity) {
+      enqueueSnackbar(`Cannot assign ${partForm.quantity} parts; only ${selectedBox.quantity} available in ${selectedBox.name}`, { variant: 'error' });
       return;
     }
     setPartLoading(true);
@@ -660,18 +566,10 @@ export default function RepairJobs() {
       if (!res.ok) throw new Error(data.error || 'Failed to assign part');
       enqueueSnackbar('Part assigned to repair job!', { variant: 'success' });
       setPartForm({ part_id: '', box_id: '', quantity: 1 });
-      // Update box quantity and parts
+      // Update box quantity after assignment
       setBoxes(prevBoxes =>
         prevBoxes.map(b =>
-          b.id === partForm.box_id
-            ? {
-                ...b,
-                quantity: b.quantity - partForm.quantity,
-                parts: b.parts.map(p =>
-                  p.part_id === partForm.part_id ? { ...p, quantity: p.quantity - partForm.quantity } : p
-                ),
-              }
-            : b
+          b.id === partForm.box_id ? { ...b, quantity: b.quantity - partForm.quantity } : b
         )
       );
       fetchPartsUsed(selectedJob.id);
